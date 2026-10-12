@@ -73,12 +73,12 @@ pub fn validate(policy: &Policy) -> Errors {
     errors.check(
         "download",
         rate(&policy.down),
-        "A download limit is a whole number of Mbit/s, or empty for no limit.",
+        "A download limit is a whole number of Mb/s, or empty for no limit.",
     );
     errors.check(
         "upload",
         rate(&policy.up),
-        "An upload limit is a whole number of Mbit/s, or empty for no limit.",
+        "An upload limit is a whole number of Mb/s, or empty for no limit.",
     );
     if policy.scheduled {
         errors.check(
@@ -100,7 +100,7 @@ pub fn validate(policy: &Policy) -> Errors {
     errors
 }
 
-/// rate accepts a whole number of Mbit/s, or nothing at all for no limit.
+/// rate accepts a whole number of Mb/s, or nothing at all for no limit.
 fn rate(value: &str) -> bool {
     value.is_empty()
         || value

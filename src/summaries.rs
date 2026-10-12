@@ -67,7 +67,7 @@ fn details(snapshot: &Snapshot, policy: &Policy) -> Vec<EntitySummaryDetail> {
             if value.is_empty() {
                 "No limit".into()
             } else {
-                format!("{value} Mbit/s")
+                format!("{value} Mb/s")
             }
         };
         facts.push(fact("download", "Download", vec![rate(&policy.down)]));
@@ -98,15 +98,15 @@ mod tests {
             json!([
                 {"kind":"weekdays", "label":"Blocked days", "values":["Mon", "Tue", "Wed", "Thu", "Fri"]},
                 {"kind":"hours", "label":"Hours (router time)", "values":["21:00–07:00"]},
-                {"kind":"download", "label":"Download", "values":["25 Mbit/s"]},
+                {"kind":"download", "label":"Download", "values":["25 Mb/s"]},
                 {"kind":"upload", "label":"Upload", "values":["No limit"]}
             ])
         );
         assert_eq!(
             serde_json::to_value(&summaries[2].details).unwrap(),
             json!([
-                {"kind":"download", "label":"Download", "values":["50 Mbit/s"]},
-                {"kind":"upload", "label":"Upload", "values":["10 Mbit/s"]}
+                {"kind":"download", "label":"Download", "values":["50 Mb/s"]},
+                {"kind":"upload", "label":"Upload", "values":["10 Mb/s"]}
             ])
         );
     }

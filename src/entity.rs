@@ -138,7 +138,7 @@ fn cap(name: &str, label: &str, value: &str, errors: &Errors) -> Widget {
             key: name.into(),
             ..Default::default()
         })
-        .counted_in("Mbit/s"),
+        .counted_in("Mb/s"),
         name,
         errors,
     )
@@ -261,7 +261,7 @@ mod tests {
             &Errors::default(),
         ));
         assert_eq!(control(&capped, "download")["value"], "50");
-        assert_eq!(control(&capped, "download")["unit"], "Mbit/s");
+        assert_eq!(control(&capped, "download")["unit"], "Mb/s");
         let previews = capped["widget"]["children"].as_array().expect("children");
         assert!(previews[1]["value"]
             .as_str()
