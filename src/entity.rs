@@ -169,6 +169,29 @@ pub fn save(policy: &Policy, leases: &Leases, form: &Form) -> Envelope {
         .with_commit(form::commits(&stated, &name))
 }
 
+/// PAUSE is the roster's toggle slot this plugin claims (manifest
+/// `entity_acts`): the power glyph on a device's row.
+pub const PAUSE: &str = "pause";
+
+/// pause answers the power glyph on a device's row: its internet paused (`on`)
+/// or resumed, and nothing else about its limits changed. It is the write
+/// unticking or ticking Internet access in the tab makes, so the two places
+/// never disagree about what a paused device is.
+pub fn pause(policy: &Policy, leases: &Leases, on: bool) -> Envelope {
+    let stated = Policy {
+        allowed: !on,
+        ..policy.clone()
+    };
+    let name = leases.subject(&stated.mac);
+    let said = match on {
+        true => "Internet pause saved to pending changes.",
+        false => "Internet resume saved to pending changes.",
+    };
+    tab(&stated, leases, &Errors::default())
+        .with_notice(Tone::Success, said)
+        .with_commit(form::commits(&stated, &name))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -7,6 +7,9 @@
   "entity_tabs": [
     { "entity": "device", "slot": "shape", "label": "Limits", "summaries": true }
   ],
+  "entity_acts": [
+    { "entity": "device", "slot": "pause", "post": true }
+  ],
   "acl": {
     "read": [
       { "scope": "uci", "object": "firewall", "function": "read" },

@@ -50,6 +50,13 @@ fn post(request: &Request, form: &Form) -> Envelope {
     match Route::of(&request.path) {
         // A summary request never changes configuration.
         Route::Summaries => summaries::read(&request.snapshot, &leases),
+        // The roster's power glyph, pressed on the device's row: the shell names
+        // the act and whether it is being turned on or off.
+        Route::EntityDevice(mac) if form.get("_act") == entity::PAUSE => entity::pause(
+            &Policy::read(&request.snapshot, &mac),
+            &leases,
+            form.get("to") == "on",
+        ),
         Route::EntityDevice(mac) => {
             entity::save(&Policy::read(&request.snapshot, &mac), &leases, form)
         }
@@ -108,6 +115,53 @@ mod tests {
         assert!(get(&request).entities.unwrap().is_empty());
         request.snapshot = verso_plugin::Snapshot::from_value(serde_json::json!({"firewall": {}}));
         assert!(get(&request).entities.is_none());
+    }
+
+    /// The roster's power glyph resumes a device refused outright and pauses
+    /// any other. Pressing it writes what unticking Internet access in the tab
+    /// writes, and nothing else about the device's limits.
+    #[test]
+    fn the_rosters_power_glyph_pauses_and_resumes_a_device() {
+        let summaries = get(&fixture::request("/entity/device/")).entities.unwrap();
+        assert_eq!(summaries[0].engaged, vec!["pause".to_string()]);
+        assert!(summaries[2].engaged.is_empty());
+
+        let act = |mac: &str, to: &str| {
+            let reply = post(
+                &fixture::request(&format!("/entity/device/{mac}")),
+                &Form::parse(&format!("_act=pause&to={to}")),
+            );
+            serde_json::to_value(&reply).expect("serialize")
+        };
+
+        // kids-ipad is refused outright and capped at nothing: resuming it
+        // takes its rule away and touches nothing else.
+        let resumed = act(&summaries[0].id, "off");
+        assert_eq!(
+            resumed["notice"]["text"],
+            "Internet resume saved to pending changes."
+        );
+        let ops = resumed["commit"].as_array().expect("commit");
+        assert_eq!(ops.len(), 1, "{ops:?}");
+        assert_eq!(ops[0]["config"], "firewall");
+        assert_eq!(ops[0]["delete"], true);
+
+        // A device with only a speed limit keeps it, and gains the refusal.
+        let paused = act(&summaries[2].id, "on");
+        assert_eq!(
+            paused["notice"]["text"],
+            "Internet pause saved to pending changes."
+        );
+        let ops = paused["commit"].as_array().expect("commit");
+        let rule = ops
+            .iter()
+            .find(|op| op["config"] == "firewall")
+            .expect("a refusal is written");
+        assert_eq!(rule["values"]["target"], "REJECT");
+        assert!(
+            ops.iter().all(|op| op["delete"] != true),
+            "the speed limit stays: {ops:?}"
+        );
     }
 
     #[test]

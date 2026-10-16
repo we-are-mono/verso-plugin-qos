@@ -5,6 +5,7 @@
 
 use verso_plugin::{EntitySummary, EntitySummaryDetail, Envelope, Snapshot, Widget};
 
+use crate::entity;
 use crate::leases::Leases;
 use crate::model::{self, Policy, CAPS, FIREWALL};
 
@@ -27,7 +28,12 @@ pub fn read(snapshot: &Snapshot, leases: &Leases) -> Envelope {
                     }
                     .into(),
                     details: details(snapshot, policy),
-                    engaged: Vec::new(),
+                    // The roster's power glyph resumes a device refused
+                    // outright, and pauses any other.
+                    engaged: match policy.allowed {
+                        false => vec![entity::PAUSE.into()],
+                        true => Vec::new(),
+                    },
                 })
                 .collect(),
         );
