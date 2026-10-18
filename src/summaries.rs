@@ -27,6 +27,7 @@ pub fn read(snapshot: &Snapshot, leases: &Leases) -> Envelope {
                     }
                     .into(),
                     details: details(snapshot, policy),
+                    engaged: Vec::new(),
                 })
                 .collect(),
         );
